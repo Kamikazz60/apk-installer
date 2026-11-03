@@ -10,3 +10,8 @@
 
 /.kotlin/
 /dist/
+
+# Clés de signature : jamais dans le dépôt
+*.jks
+*.keystore
+keystore.properties

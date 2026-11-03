@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -13,13 +15,30 @@ android {
         applicationId = (findProperty("sampleId") as String?) ?: "com.apkinstaller.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = ((findProperty("sampleVersion") as String?) ?: "1").toInt()
-        versionName = ((findProperty("sampleVersion") as String?)?.let { "$it.0" }) ?: "1.0"
+        versionCode = ((findProperty("sampleVersion") as String?) ?: "2").toInt()
+        versionName = ((findProperty("sampleVersion") as String?)?.let { "$it.0" }) ?: "1.0.1"
+    }
+
+    // Signature de la version « release » : le fichier de propriétés (clé, mots de passe) reste HORS du dépôt.
+    // Utilisation : ./gradlew assembleRelease -PkeystoreProps=<chemin du keystore.properties>
+    val signingProps = (findProperty("keystoreProps") as String?)?.let { path ->
+        Properties().apply { file(path).inputStream().use { load(it) } }
+    }
+    signingConfigs {
+        if (signingProps != null) {
+            create("release") {
+                storeFile = file(signingProps.getProperty("storeFile"))
+                storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
     compileOptions {
